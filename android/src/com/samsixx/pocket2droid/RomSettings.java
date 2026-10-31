@@ -34,30 +34,35 @@ final class RomSettings {
     final ScreenPosition screenPosition;
     final File card;
     final boolean internetEnabled;
+    final boolean glesEnabled;
+    final boolean glesGpuEnabled;
     final boolean networkSetupEligible;
     final String networkMac;
     RomSettings(String name,GuestResolution resolution,ScaleMode scale,HostOrientation orientation,File card)throws IOException {
         this(name,resolution,scale,orientation,ScreenPosition.CENTER,card);
     }
     RomSettings(String name,GuestResolution resolution,ScaleMode scale,HostOrientation orientation,ScreenPosition screenPosition,File card)throws IOException {
-        this(name,resolution,scale,orientation,screenPosition,card,0,0,false,null,false);
+        this(name,resolution,scale,orientation,screenPosition,card,0,0,false,null,false,false,true);
     }
-    private RomSettings(String name,GuestResolution resolution,ScaleMode scale,HostOrientation orientation,ScreenPosition screenPosition,File card,int customWidth,int customHeight,boolean internetEnabled,String networkMac,boolean networkSetupEligible)throws IOException {
+    private RomSettings(String name,GuestResolution resolution,ScaleMode scale,HostOrientation orientation,ScreenPosition screenPosition,File card,int customWidth,int customHeight,boolean internetEnabled,String networkMac,boolean networkSetupEligible,boolean glesEnabled,boolean glesGpuEnabled)throws IOException {
         if(name==null||name.trim().isEmpty()||name.length()>180||name.indexOf('\0')>=0)throw new IOException("Enter a nonempty display name (up to 180 characters)");
         if(resolution==null||scale==null||orientation==null||screenPosition==null||card==null||!card.isAbsolute())throw new IOException("Invalid ROM settings");
         if(!(resolution!=GuestResolution.CUSTOM&&customWidth==0&&customHeight==0)&&(customWidth<1||customHeight<1))throw new IOException("Width and height must be positive whole numbers");
         displayName=name.trim();this.resolution=resolution;this.scale=scale;this.orientation=orientation;this.screenPosition=screenPosition;this.card=card;
         this.customWidth=customWidth;this.customHeight=customHeight;
         if((networkMac!=null&&!NetworkConfig.validMac(networkMac))||(internetEnabled&&networkMac==null))throw new IOException("Invalid network identity in profile; existing data preserved");
-        this.networkSetupEligible=networkSetupEligible;this.internetEnabled=internetEnabled;this.networkMac=networkMac==null?null:networkMac.toLowerCase(java.util.Locale.ROOT);
+        // Legacy flags remain readable, but graphics are automatic for every ROM.
+        this.glesEnabled=true;this.glesGpuEnabled=true;this.networkSetupEligible=networkSetupEligible;this.internetEnabled=internetEnabled;this.networkMac=networkMac==null?null:networkMac.toLowerCase(java.util.Locale.ROOT);
     }
-    static RomSettings defaults(String name,File card)throws IOException{return new RomSettings(name,GuestResolution.ROM_DEFAULT,ScaleMode.FITTED,HostOrientation.PORTRAIT,ScreenPosition.CENTER,card,0,0,true,NetworkConfig.newMac(new java.security.SecureRandom()),true);}
-    RomSettings withDisplayName(String name)throws IOException{return new RomSettings(name,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withScale(ScaleMode value)throws IOException{return new RomSettings(displayName,resolution,value,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withResolution(GuestResolution value)throws IOException{return new RomSettings(displayName,value,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withCustomResolution(int width,int height)throws IOException{return new RomSettings(displayName,GuestResolution.CUSTOM,scale,orientation,screenPosition,card,width,height,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withInternetAccess(boolean enabled)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,enabled,enabled&&networkMac==null?NetworkConfig.newMac(new java.security.SecureRandom()):networkMac,networkSetupEligible);}
-    RomSettings withNetworkSetupEligibility(boolean value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,value);}
+    static RomSettings defaults(String name,File card)throws IOException{return new RomSettings(name,GuestResolution.ROM_DEFAULT,ScaleMode.FITTED,HostOrientation.PORTRAIT,ScreenPosition.CENTER,card,0,0,true,NetworkConfig.newMac(new java.security.SecureRandom()),true,false,true);}
+    RomSettings withDisplayName(String name)throws IOException{return new RomSettings(name,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withScale(ScaleMode value)throws IOException{return new RomSettings(displayName,resolution,value,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withResolution(GuestResolution value)throws IOException{return new RomSettings(displayName,value,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withCustomResolution(int width,int height)throws IOException{return new RomSettings(displayName,GuestResolution.CUSTOM,scale,orientation,screenPosition,card,width,height,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withInternetAccess(boolean enabled)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,enabled,enabled&&networkMac==null?NetworkConfig.newMac(new java.security.SecureRandom()):networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withNetworkSetupEligibility(boolean value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,value,glesEnabled,glesGpuEnabled);}
+    RomSettings withGles(boolean value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,value,glesGpuEnabled);}
+    RomSettings withGlesGpu(boolean value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,value);}
     String resolutionLabel(){return resolution==GuestResolution.CUSTOM?"Custom ("+customWidth+"×"+customHeight+")":resolution.label;}
     GuestSize startupSize(String filename){GuestResolution preset=startupResolution(filename);return preset==GuestResolution.CUSTOM?new GuestSize(customWidth,customHeight):new GuestSize(preset.width,preset.height);}
     GuestResolution startupResolution(String filename){
@@ -80,10 +85,10 @@ final class RomSettings {
             default:return GuestResolution.QVGA;
         }
     }
-    RomSettings withOrientation(HostOrientation value)throws IOException{return new RomSettings(displayName,resolution,scale,value,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withScreenPosition(ScreenPosition value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,value,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    RomSettings withCard(File value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,value,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible);}
-    JSONObject json()throws JSONException{JSONObject o=new JSONObject().put("displayName",displayName).put("resolution",resolution.name()).put("scale",scale.name()).put("orientation",orientation.name()).put("screenPosition",screenPosition.name()).put("storageCard",card.getPath()).put("internetEnabled",internetEnabled).put("networkSetupEligible",networkSetupEligible);if(networkMac!=null)o.put("networkMac",networkMac);if(customWidth>0)o.put("customWidth",customWidth).put("customHeight",customHeight);return o;}
+    RomSettings withOrientation(HostOrientation value)throws IOException{return new RomSettings(displayName,resolution,scale,value,screenPosition,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withScreenPosition(ScreenPosition value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,value,card,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    RomSettings withCard(File value)throws IOException{return new RomSettings(displayName,resolution,scale,orientation,screenPosition,value,customWidth,customHeight,internetEnabled,networkMac,networkSetupEligible,glesEnabled,glesGpuEnabled);}
+    JSONObject json()throws JSONException{JSONObject o=new JSONObject().put("displayName",displayName).put("resolution",resolution.name()).put("scale",scale.name()).put("orientation",orientation.name()).put("screenPosition",screenPosition.name()).put("storageCard",card.getPath()).put("internetEnabled",internetEnabled).put("networkSetupEligible",networkSetupEligible).put("glesEnabled",glesEnabled).put("glesGpuEnabled",glesGpuEnabled);if(networkMac!=null)o.put("networkMac",networkMac);if(customWidth>0)o.put("customWidth",customWidth).put("customHeight",customHeight);return o;}
     private static int dimension(JSONObject o,String key)throws IOException,JSONException {
         Object value=o.get(key);
         if(!(value instanceof Integer)&&!(value instanceof Long))throw new IOException("Invalid custom resolution in profile; existing data preserved");
@@ -94,8 +99,10 @@ final class RomSettings {
             boolean dimensions=mode==GuestResolution.CUSTOM||o.has("customWidth")||o.has("customHeight");
             if(o.has("internetEnabled")&&!(o.get("internetEnabled") instanceof Boolean))throw new IOException("Invalid Internet access setting");
             if(o.has("networkSetupEligible")&&!(o.get("networkSetupEligible") instanceof Boolean))throw new IOException("Invalid automatic network setup setting");
+            if(o.has("glesEnabled")&&!(o.get("glesEnabled") instanceof Boolean))throw new IOException("Invalid GLES setting");
+            if(o.has("glesGpuEnabled")&&!(o.get("glesGpuEnabled") instanceof Boolean))throw new IOException("Invalid GLES renderer setting");
             if(o.has("networkMac")&&!(o.get("networkMac") instanceof String))throw new IOException("Invalid network identity");
-            return new RomSettings(o.getString("displayName"),mode,ScaleMode.valueOf(o.getString("scale")),HostOrientation.valueOf(o.getString("orientation")),o.has("screenPosition")?ScreenPosition.valueOf(o.getString("screenPosition")):ScreenPosition.CENTER,new File(o.getString("storageCard")),dimensions?dimension(o,"customWidth"):0,dimensions?dimension(o,"customHeight"):0,o.has("internetEnabled")&&o.getBoolean("internetEnabled"),o.has("networkMac")?o.getString("networkMac"):null,o.has("networkSetupEligible")&&o.getBoolean("networkSetupEligible"));}
+            return new RomSettings(o.getString("displayName"),mode,ScaleMode.valueOf(o.getString("scale")),HostOrientation.valueOf(o.getString("orientation")),o.has("screenPosition")?ScreenPosition.valueOf(o.getString("screenPosition")):ScreenPosition.CENTER,new File(o.getString("storageCard")),dimensions?dimension(o,"customWidth"):0,dimensions?dimension(o,"customHeight"):0,o.has("internetEnabled")&&o.getBoolean("internetEnabled"),o.has("networkMac")?o.getString("networkMac"):null,o.has("networkSetupEligible")&&o.getBoolean("networkSetupEligible"),o.has("glesEnabled")&&o.getBoolean("glesEnabled"),!o.has("glesGpuEnabled")||o.getBoolean("glesGpuEnabled"));}
         catch(JSONException|IllegalArgumentException e){throw new IOException("Invalid profile settings; retained data preserved",e);}
     }
 }

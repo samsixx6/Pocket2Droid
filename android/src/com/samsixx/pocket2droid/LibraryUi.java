@@ -53,6 +53,15 @@ abstract class LibraryUi extends Activity {
         view.setPadding(left,top,right,bottom);backdrop.insets(top,bottom);return insets;
     });setContentView(root);root.requestApplyInsets();}
     TextView text(String s,int size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);return t;}
+    void glesBadge(LinearLayout parent){
+        boolean light=TEXT==0xff202124;
+        TextView badge=text("GLES",11,light?0xff007785:0xffb9f1f5);
+        badge.setTypeface(null,Typeface.BOLD);badge.setPadding(dp(10),dp(3),dp(10),dp(3));
+        badge.setContentDescription("GLES support built into ROM");
+        android.graphics.drawable.GradientDrawable background=new android.graphics.drawable.GradientDrawable();
+        background.setColor(light?0xffe0f7fa:0xff173b42);background.setCornerRadius(dp(14));background.setStroke(dp(1),light?0xff9ee6ef:0xff377a83);badge.setBackground(background);
+        LinearLayout.LayoutParams margin=new LinearLayout.LayoutParams(-2,-2);margin.topMargin=dp(6);parent.addView(badge,margin);
+    }
     Button action(String s,Runnable r){Button b=new Button(this);b.setText(s);b.setTextColor(TEXT);b.setTextSize(14);b.setAllCaps(false);b.setMinWidth(0);b.setMinimumWidth(0);b.setOnClickListener(v->{if(!working)r.run();});return b;}
     android.graphics.drawable.Drawable toolbarBackground(){android.graphics.drawable.GradientDrawable mask=new android.graphics.drawable.GradientDrawable();mask.setColor(Color.WHITE);mask.setCornerRadius(dp(24));return new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x3354a7ff),null,mask);}
     ImageButton iconButton(ToolbarIcon.Symbol symbol,String description,Runnable action){ImageButton b=new ImageButton(this);b.setImageDrawable(new ToolbarIcon(symbol,TOOLBAR_TEXT,dp(24)));b.setScaleType(ImageView.ScaleType.CENTER);b.setBackground(toolbarBackground());b.setContentDescription(description);b.setPadding(0,0,0,0);b.setOnClickListener(v->{if(!working)action.run();});return b;}

@@ -1,0 +1,14 @@
+[package]
+name = "pocket-gles"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Clean-room OpenGL ES 1.x / EGL 1.0 implementation for PocketHLE."
+
+[dependencies]
+log.workspace = true
+once_cell.workspace = true
+serde.workspace = true
+serde_json.workspace = true

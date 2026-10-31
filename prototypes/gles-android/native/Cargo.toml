@@ -1,0 +1,18 @@
+[package]
+name = "p2d-gles-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "p2d_gles"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+p2d-gles-host = { path = "../../gles-support/bridge-lab/host" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+strip = "debuginfo"

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "critical": 0,
+  "important": 0,
+  "minor": [
+    {
+      "issue": "Library refresh currently runs the bounded header detector twice through existing profile wrapping.",
+      "disposition": "Deferred: read-only, bounded and off the UI thread; no user-visible correctness or blocking performance issue established."
+    }
+  ],
+  "declined_scope": [
+    "arbitrary compressed/device-specific ROM formats",
+    "renderer/gameplay correctness",
+    "phone performance",
+    "final APK/source identity (verified separately)"
+  ]
+}

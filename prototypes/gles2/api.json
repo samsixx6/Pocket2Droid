@@ -1,0 +1,796 @@
+{
+  "version": 1,
+  "apis": [
+    {
+      "name": "glActiveTexture",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131072,
+      "export_ordinal": 1
+    },
+    {
+      "name": "glAttachShader",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131073,
+      "export_ordinal": 2
+    },
+    {
+      "name": "glBindAttribLocation",
+      "arity": 3,
+      "kind": "data",
+      "op": 131074,
+      "export_ordinal": 3
+    },
+    {
+      "name": "glBindBuffer",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131075,
+      "export_ordinal": 4
+    },
+    {
+      "name": "glBindFramebuffer",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131076,
+      "export_ordinal": 5
+    },
+    {
+      "name": "glBindRenderbuffer",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131077,
+      "export_ordinal": 6
+    },
+    {
+      "name": "glBindTexture",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131078,
+      "export_ordinal": 7
+    },
+    {
+      "name": "glBlendFunc",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131079,
+      "export_ordinal": 8
+    },
+    {
+      "name": "glBufferData",
+      "arity": 4,
+      "kind": "data",
+      "op": 131080,
+      "export_ordinal": 9
+    },
+    {
+      "name": "glBufferSubData",
+      "arity": 4,
+      "kind": "data",
+      "op": 131081,
+      "export_ordinal": 10
+    },
+    {
+      "name": "glCheckFramebufferStatus",
+      "arity": 1,
+      "kind": "query",
+      "op": 131082,
+      "export_ordinal": 11
+    },
+    {
+      "name": "glClear",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131083,
+      "export_ordinal": 12
+    },
+    {
+      "name": "glClearColor",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131084,
+      "export_ordinal": 13
+    },
+    {
+      "name": "glClearDepthf",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131085,
+      "export_ordinal": 14
+    },
+    {
+      "name": "glCompileShader",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131086,
+      "export_ordinal": 15
+    },
+    {
+      "name": "glCompressedTexImage2D",
+      "arity": 8,
+      "kind": "data",
+      "op": 131087,
+      "export_ordinal": 16
+    },
+    {
+      "name": "glCreateProgram",
+      "arity": 0,
+      "kind": "query",
+      "op": 131088,
+      "export_ordinal": 17
+    },
+    {
+      "name": "glCreateShader",
+      "arity": 1,
+      "kind": "query",
+      "op": 131089,
+      "export_ordinal": 18
+    },
+    {
+      "name": "glCullFace",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131090,
+      "export_ordinal": 19
+    },
+    {
+      "name": "glDeleteBuffers",
+      "arity": 2,
+      "kind": "data",
+      "op": 131091,
+      "export_ordinal": 20
+    },
+    {
+      "name": "glDeleteFramebuffers",
+      "arity": 2,
+      "kind": "data",
+      "op": 131092,
+      "export_ordinal": 21
+    },
+    {
+      "name": "glDeleteProgram",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131093,
+      "export_ordinal": 22
+    },
+    {
+      "name": "glDeleteRenderbuffers",
+      "arity": 2,
+      "kind": "data",
+      "op": 131094,
+      "export_ordinal": 23
+    },
+    {
+      "name": "glDeleteShader",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131095,
+      "export_ordinal": 24
+    },
+    {
+      "name": "glDeleteTextures",
+      "arity": 2,
+      "kind": "data",
+      "op": 131096,
+      "export_ordinal": 25
+    },
+    {
+      "name": "glDepthFunc",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131097,
+      "export_ordinal": 26
+    },
+    {
+      "name": "glDepthMask",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131098,
+      "export_ordinal": 27
+    },
+    {
+      "name": "glDepthRangef",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131099,
+      "export_ordinal": 28
+    },
+    {
+      "name": "glDisable",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131100,
+      "export_ordinal": 29
+    },
+    {
+      "name": "glDisableVertexAttribArray",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131101,
+      "export_ordinal": 30
+    },
+    {
+      "name": "glDrawArrays",
+      "arity": 3,
+      "kind": "draw",
+      "op": 131102,
+      "export_ordinal": 31
+    },
+    {
+      "name": "glDrawElements",
+      "arity": 4,
+      "kind": "draw",
+      "op": 131103,
+      "export_ordinal": 32
+    },
+    {
+      "name": "glEnable",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131104,
+      "export_ordinal": 33
+    },
+    {
+      "name": "glEnableVertexAttribArray",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131105,
+      "export_ordinal": 34
+    },
+    {
+      "name": "glFinish",
+      "arity": 0,
+      "kind": "scalar",
+      "op": 131106,
+      "export_ordinal": 35
+    },
+    {
+      "name": "glFlush",
+      "arity": 0,
+      "kind": "scalar",
+      "op": 131107,
+      "export_ordinal": 36
+    },
+    {
+      "name": "glFramebufferRenderbuffer",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131108,
+      "export_ordinal": 37
+    },
+    {
+      "name": "glFramebufferTexture2D",
+      "arity": 5,
+      "kind": "scalar",
+      "op": 131109,
+      "export_ordinal": 38
+    },
+    {
+      "name": "glGenBuffers",
+      "arity": 2,
+      "kind": "query",
+      "op": 131110,
+      "export_ordinal": 39
+    },
+    {
+      "name": "glGenFramebuffers",
+      "arity": 2,
+      "kind": "query",
+      "op": 131111,
+      "export_ordinal": 40
+    },
+    {
+      "name": "glGenRenderbuffers",
+      "arity": 2,
+      "kind": "query",
+      "op": 131112,
+      "export_ordinal": 41
+    },
+    {
+      "name": "glGenTextures",
+      "arity": 2,
+      "kind": "query",
+      "op": 131113,
+      "export_ordinal": 42
+    },
+    {
+      "name": "glGetError",
+      "arity": 0,
+      "kind": "query",
+      "op": 131114,
+      "export_ordinal": 43
+    },
+    {
+      "name": "glGetIntegerv",
+      "arity": 2,
+      "kind": "query",
+      "op": 131115,
+      "export_ordinal": 44
+    },
+    {
+      "name": "glGetProgramInfoLog",
+      "arity": 4,
+      "kind": "query",
+      "op": 131116,
+      "export_ordinal": 45
+    },
+    {
+      "name": "glGetProgramiv",
+      "arity": 3,
+      "kind": "query",
+      "op": 131117,
+      "export_ordinal": 46
+    },
+    {
+      "name": "glGetShaderInfoLog",
+      "arity": 4,
+      "kind": "query",
+      "op": 131118,
+      "export_ordinal": 47
+    },
+    {
+      "name": "glGetShaderiv",
+      "arity": 3,
+      "kind": "query",
+      "op": 131119,
+      "export_ordinal": 48
+    },
+    {
+      "name": "glGetUniformLocation",
+      "arity": 2,
+      "kind": "query",
+      "op": 131120,
+      "export_ordinal": 49
+    },
+    {
+      "name": "glLinkProgram",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131121,
+      "export_ordinal": 50
+    },
+    {
+      "name": "glRenderbufferStorage",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131122,
+      "export_ordinal": 51
+    },
+    {
+      "name": "glScissor",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131123,
+      "export_ordinal": 52
+    },
+    {
+      "name": "glShaderSource",
+      "arity": 4,
+      "kind": "data",
+      "op": 131124,
+      "export_ordinal": 53
+    },
+    {
+      "name": "glTexImage2D",
+      "arity": 9,
+      "kind": "data",
+      "op": 131125,
+      "export_ordinal": 54
+    },
+    {
+      "name": "glTexParameteri",
+      "arity": 3,
+      "kind": "scalar",
+      "op": 131126,
+      "export_ordinal": 55
+    },
+    {
+      "name": "glUniform1f",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131127,
+      "export_ordinal": 56
+    },
+    {
+      "name": "glUniform1i",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131128,
+      "export_ordinal": 57
+    },
+    {
+      "name": "glUniform2f",
+      "arity": 3,
+      "kind": "scalar",
+      "op": 131129,
+      "export_ordinal": 58
+    },
+    {
+      "name": "glUniform3f",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131130,
+      "export_ordinal": 59
+    },
+    {
+      "name": "glUniform4f",
+      "arity": 5,
+      "kind": "scalar",
+      "op": 131131,
+      "export_ordinal": 60
+    },
+    {
+      "name": "glUniformMatrix3fv",
+      "arity": 4,
+      "kind": "data",
+      "op": 131132,
+      "export_ordinal": 61
+    },
+    {
+      "name": "glUniformMatrix4fv",
+      "arity": 4,
+      "kind": "data",
+      "op": 131133,
+      "export_ordinal": 62
+    },
+    {
+      "name": "glUseProgram",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131134,
+      "export_ordinal": 63
+    },
+    {
+      "name": "glVertexAttribPointer",
+      "arity": 6,
+      "kind": "local",
+      "op": 131135,
+      "export_ordinal": 64
+    },
+    {
+      "name": "glViewport",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131136,
+      "export_ordinal": 65
+    },
+    {
+      "name": "glGetString",
+      "arity": 1,
+      "kind": "local",
+      "op": 131137,
+      "export_ordinal": 66
+    },
+    {
+      "name": "glPixelStorei",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131138,
+      "export_ordinal": 67
+    },
+    {
+      "name": "glFrontFace",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131139,
+      "export_ordinal": 68
+    },
+    {
+      "name": "glColorMask",
+      "arity": 4,
+      "kind": "scalar",
+      "op": 131140,
+      "export_ordinal": 69
+    },
+    {
+      "name": "glClearStencil",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131141,
+      "export_ordinal": 70
+    },
+    {
+      "name": "glStencilFunc",
+      "arity": 3,
+      "kind": "scalar",
+      "op": 131142,
+      "export_ordinal": 71
+    },
+    {
+      "name": "glStencilOp",
+      "arity": 3,
+      "kind": "scalar",
+      "op": 131143,
+      "export_ordinal": 72
+    },
+    {
+      "name": "glStencilMask",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131144,
+      "export_ordinal": 73
+    },
+    {
+      "name": "glBlendEquation",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131145,
+      "export_ordinal": 74
+    },
+    {
+      "name": "glGenerateMipmap",
+      "arity": 1,
+      "kind": "scalar",
+      "op": 131146,
+      "export_ordinal": 75
+    },
+    {
+      "name": "glTexSubImage2D",
+      "arity": 9,
+      "kind": "data",
+      "op": 131147,
+      "export_ordinal": 76
+    },
+    {
+      "name": "glUniform2fv",
+      "arity": 3,
+      "kind": "data",
+      "op": 131148,
+      "export_ordinal": 77
+    },
+    {
+      "name": "glUniform3fv",
+      "arity": 3,
+      "kind": "data",
+      "op": 131149,
+      "export_ordinal": 78
+    },
+    {
+      "name": "glUniform4fv",
+      "arity": 3,
+      "kind": "data",
+      "op": 131150,
+      "export_ordinal": 79
+    },
+    {
+      "name": "glUniform1fv",
+      "arity": 3,
+      "kind": "data",
+      "op": 131151,
+      "export_ordinal": 80
+    },
+    {
+      "name": "eglGetDisplay",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131328,
+      "export_ordinal": 81
+    },
+    {
+      "name": "eglInitialize",
+      "arity": 3,
+      "kind": "egl",
+      "op": 131329,
+      "export_ordinal": 82
+    },
+    {
+      "name": "eglChooseConfig",
+      "arity": 5,
+      "kind": "egl",
+      "op": 131330,
+      "export_ordinal": 83
+    },
+    {
+      "name": "eglCreateWindowSurface",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131331,
+      "export_ordinal": 84
+    },
+    {
+      "name": "eglCreateContext",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131332,
+      "export_ordinal": 85
+    },
+    {
+      "name": "eglMakeCurrent",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131333,
+      "export_ordinal": 86
+    },
+    {
+      "name": "eglSwapInterval",
+      "arity": 2,
+      "kind": "egl",
+      "op": 131334,
+      "export_ordinal": 87
+    },
+    {
+      "name": "eglSwapBuffers",
+      "arity": 2,
+      "kind": "egl",
+      "op": 131335,
+      "export_ordinal": 88
+    },
+    {
+      "name": "eglGetError",
+      "arity": 0,
+      "kind": "egl",
+      "op": 131336,
+      "export_ordinal": 89
+    },
+    {
+      "name": "eglDestroyContext",
+      "arity": 2,
+      "kind": "egl",
+      "op": 131337,
+      "export_ordinal": 90
+    },
+    {
+      "name": "eglDestroySurface",
+      "arity": 2,
+      "kind": "egl",
+      "op": 131338,
+      "export_ordinal": 91
+    },
+    {
+      "name": "eglTerminate",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131339,
+      "export_ordinal": 92
+    },
+    {
+      "name": "eglGetProcAddress",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131340,
+      "export_ordinal": 93
+    },
+    {
+      "name": "eglQueryString",
+      "arity": 2,
+      "kind": "egl",
+      "op": 131341,
+      "export_ordinal": 94
+    },
+    {
+      "name": "eglGetConfigAttrib",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131342,
+      "export_ordinal": 95
+    },
+    {
+      "name": "eglQuerySurface",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131343,
+      "export_ordinal": 96
+    },
+    {
+      "name": "eglGetCurrentContext",
+      "arity": 0,
+      "kind": "egl",
+      "op": 131344,
+      "export_ordinal": 97
+    },
+    {
+      "name": "eglGetCurrentDisplay",
+      "arity": 0,
+      "kind": "egl",
+      "op": 131345,
+      "export_ordinal": 98
+    },
+    {
+      "name": "eglGetCurrentSurface",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131346,
+      "export_ordinal": 99
+    },
+    {
+      "name": "eglBindAPI",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131347,
+      "export_ordinal": 100
+    },
+    {
+      "name": "eglQueryAPI",
+      "arity": 0,
+      "kind": "egl",
+      "op": 131348,
+      "export_ordinal": 101
+    },
+    {
+      "name": "eglWaitGL",
+      "arity": 0,
+      "kind": "egl",
+      "op": 131349,
+      "export_ordinal": 102
+    },
+    {
+      "name": "eglWaitNative",
+      "arity": 1,
+      "kind": "egl",
+      "op": 131350,
+      "export_ordinal": 103
+    },
+    {
+      "name": "eglGetConfigs",
+      "arity": 4,
+      "kind": "egl",
+      "op": 131351,
+      "export_ordinal": 104
+    },
+    {
+      "name": "p2dD3DMReadBackBuffer565",
+      "arity": 4,
+      "kind": "query",
+      "op": 135137,
+      "export_ordinal": 105
+    },
+    {
+      "name": "glGetAttribLocation",
+      "arity": 2,
+      "kind": "query",
+      "op": 131152,
+      "export_ordinal": 107
+    },
+    {
+      "name": "glHint",
+      "arity": 2,
+      "kind": "scalar",
+      "op": 131153,
+      "export_ordinal": 108
+    },
+    {
+      "name": "glTexParameterf",
+      "arity": 3,
+      "kind": "scalar",
+      "op": 131154,
+      "export_ordinal": 109
+    },
+    {
+      "name": "glShaderBinary",
+      "arity": 5,
+      "kind": "local",
+      "op": 131155,
+      "export_ordinal": 110
+    },
+    {
+      "name": "glReleaseShaderCompiler",
+      "arity": 0,
+      "kind": "local",
+      "op": 131156,
+      "export_ordinal": 111
+    },
+    {
+      "name": "glGetShaderSource",
+      "arity": 4,
+      "kind": "query",
+      "op": 131157,
+      "export_ordinal": 112
+    },
+    {
+      "name": "glIsShader",
+      "arity": 1,
+      "kind": "query",
+      "op": 131158,
+      "export_ordinal": 113
+    },
+    {
+      "name": "glIsProgram",
+      "arity": 1,
+      "kind": "query",
+      "op": 131159,
+      "export_ordinal": 114
+    }
+  ]
+}

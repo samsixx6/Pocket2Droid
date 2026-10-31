@@ -13,7 +13,7 @@ for name in ('RomRepository.java','RomSettings.java','RomProfile.java','ProfileF
  assert (SRC/name).exists(),'Missing profile implementation: '+name
 jdk=Path(shutil.which('javac')).resolve().parents[1]
 subprocess.run(['cc','-std=c11','-O2','-shared','-fPIC','-Wall','-Wextra','-Werror','-Dsyscall=p2d_test_syscall','-Dwrite=p2d_test_write','-Dfsync=p2d_test_fsync','-I'+str(jdk/'include'),'-I'+str(jdk/'include/linux'),str(HERE/'native/storage_publish.c'),str(HERE/'tests/storage_faults.c'),'-o',str(B/'libp2dstorage.so')],check=True)
-names=('StorageLayout','StoragePublish','RomRepository','RomSettings','RomProfile','ProfileFiles','SessionGuard','DisplayTransform','FrameProtocol','NetworkConfig')
+names=('StorageLayout','StoragePublish','RomRepository','RomUpdate','GuestRam','RomSettings','RomProfile','ProfileFiles','SessionGuard','DisplayTransform','FrameProtocol','NetworkConfig')
 sources=[SRC/(n+'.java') for n in names if (SRC/(n+'.java')).exists()]
 if a.controls:sources.extend(SRC/(n+'.java') for n in ('ControlsLayout','ControlsState'))
 tests=[HERE/'tests/RomRepositoryTest.java']

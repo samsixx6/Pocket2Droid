@@ -21,7 +21,7 @@ if a.session:
 if a.build_art:
     api=Path('/opt/pocket2droid-android-tools/android-36/android.jar');sdk=api.parent.parent/'android-16'
     classes=build/'art-classes';classes.mkdir(exist_ok=True)
-    sources=list(SRC.glob('*.java'))+[HERE/'tests'/n for n in ('EngineKeyTest.java','AudioProtocolTest.java','AudioPumpTest.java','AudioSessionTest.java','AudioPlayerArtTest.java','InsetBackdropArtTest.java')]
+    sources=list(SRC.glob('*.java'))+[HERE/'tests'/n for n in ('EngineKeyTest.java','AudioProtocolTest.java','AudioPumpTest.java','AudioSessionTest.java','AudioPlayerArtTest.java','AudioShortSoundArtTest.java','InsetBackdropArtTest.java')]
     subprocess.run(['javac','--release','8','-cp',str(api),'-d',str(classes),*map(str,sources)],check=True)
     jar=build/'art-input.jar';subprocess.run(['jar','cf',str(jar),'-C',str(classes),'.'],check=True)
     dex=build/'art-dex';dex.mkdir(exist_ok=True)

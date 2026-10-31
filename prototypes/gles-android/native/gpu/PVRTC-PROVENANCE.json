@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/powervr-graphics/Native_SDK",
+  "commit": "fa7396af369a3c803be43545504f82c7d5cfa4a9",
+  "files": {
+    "PVRTDecompress.cpp": "74559c5a4b8161aafce1ebe984bf8060896feaa81276b614491dbee755d6e4c7",
+    "PVRTDecompress.h": "67123a36b99df380af76a65f3dfa3a7f368a153f5401b36a9ff1ed233cee6f5f",
+    "LICENSE.md": "b1aea79afab593649ede742eccbb7feb74d216d52d120b99c4d349133871ba9f"
+  },
+  "adaptation": "PVRTC1 portion only: C types/value arguments, fixed 32-pixel scratch, explicit little-endian loads, bounded validation/cropping, RGB opaque alpha. No ETC decoder."
+}

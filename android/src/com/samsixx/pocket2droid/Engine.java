@@ -52,6 +52,7 @@ final class Engine {
     private File retainedRam;
     private NetworkSession networkSession;
     private File networkSetupFile;
+    private GlesSetup.Bundle glesSetup;
     private int requestId;
 
     Engine(Context context, Status sink) {
@@ -104,13 +105,21 @@ final class Engine {
             }catch(android.system.ErrnoException error){throw new IOException("Cannot identify WM5 RAM backing file",error);}
         }
         boolean internet=layout.profile!=null&&layout.profile.settings.internetEnabled;
-        if(internet){machine+=",network=on";machine=NetworkSetup.appendMachineOption(machine,networkSetupFile);}
+        if(internet){machine+=",network=on";if(glesSetup==null)machine=NetworkSetup.appendMachineOption(machine,networkSetupFile);}
+        machine=GlesSetup.appendMachineOptions(machine,glesSetup,new File(context.getApplicationInfo().nativeLibraryDir,"libp2d_gles.so"));
         List<String> args=new ArrayList<>(Arrays.asList(executable, "-machine", machine,
             "-m", "128M", "-bios", rom.getPath(), "-accel", "tcg,thread=single",
             "-display", "none", "-monitor", "none", "-serial", "none", "-S",
             "-qmp", "unix:" + option(layout.control) + ",server=on,wait=off"));
         NetworkConfig.appendArguments(args,internet,internet?layout.profile.settings.networkMac:null);
-        return new ProcessBuilder(args);
+        ProcessBuilder builder=new ProcessBuilder(args);
+        configureGlesBackend(builder,layout.profile==null?null:layout.profile.settings);
+        return builder;
+    }
+    static void configureGlesBackend(ProcessBuilder builder,RomSettings settings){
+        Map<String,String> environment=builder.environment();
+        // Override inherited or legacy CPU/Off selections; the native selector owns fallback.
+        environment.put("P2D_GLES_BACKEND","gpu");
     }
     private static String option(File file){return file.getPath().replace(",",",,");}
     void prepareFrames()throws IOException {
@@ -136,6 +145,7 @@ final class Engine {
                 networkSetupFile=null;
                 try{networkSetupFile=NetworkSetup.prepare(context,layout.profile==null?null:layout.profile.settings);}
                 catch(IOException unavailable){status.changed("Automatic network setup unavailable. In Windows Mobile Network Cards, select The Internet.");}
+                glesSetup=GlesSetup.prepare(context,layout.profile==null?"legacy":layout.profile.settingsKey,layout.profile==null?null:layout.profile.settings,networkSetupFile);
                 // Open before QEMU can dirty pages, retaining Linux's writeback-error cursor.
                 storageHandle = new RandomAccessFile(storage, "rw");
                 retainedRam=GuestRam.prepare(rom,storage.getParentFile(),layout.runtime);

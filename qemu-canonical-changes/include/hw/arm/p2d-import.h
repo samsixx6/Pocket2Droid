@@ -4,18 +4,22 @@
 #include "hw/core/cpu.h"
 #include <dirent.h>
 #include "hw/arm/p2d-net-setup-files.h"
+#include "hw/arm/p2d-gles-files.h"
 
 typedef struct P2DFolderFile {
     int fd;
     uint16_t mode;
     uint32_t position;
     char *name;
+    unsigned gles_id; /* Zero is an ordinary shared-card handle. */
 } P2DFolderFile;
 
 typedef struct P2DFolderSearch {
     DIR *directory;
     char *pattern;
     bool setup_dir, setup_pending, setup_offered;
+    bool gles_dir, gles_root;
+    unsigned gles_next;
 } P2DFolderSearch;
 
 typedef struct P2DImport {
@@ -30,14 +34,17 @@ typedef struct P2DImport {
     int move_state_fd, move_lock_fd;
     bool move_blocked;
     bool initialized;
+    bool ce_seek_checked;
     P2DFolderFile files[40];
     P2DFolderSearch find[40];
     P2DNetSetupFiles setup;
+    P2DGLESFiles gles;
 } P2DImport;
 
 bool p2d_import_load(P2DImport *s, CPUState *cpu, const char *path,
                      const char *shared_folder, const char *move_state,
-                     const char *network_setup, Error **errp);
+                     const char *network_setup, const char *gles_assets,
+                     const char *gles_renderer, Error **errp);
 bool p2d_import_enabled(P2DImport *s);
 void p2d_import_reset(P2DImport *s);
 void p2d_import_cleanup(P2DImport *s);

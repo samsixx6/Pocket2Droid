@@ -21,8 +21,8 @@ SDK = TOOLS / 'android-16'
 ANDROID = TOOLS / 'android-36/android.jar'
 BASELINE = PROJECT / 'apk/6.52/Pocket2Droid-V6.52-Persistent-JIT-DEV-SIGNED.apk'
 BASELINE_SHA = 'f491e563c1db6a62d3be8c952f56ee4556ff39e8138c9bc5b1c92de9de1fd058'
-VERSION = '1.0.2'
-VERSION_CODE = 682
+VERSION = '1.0.3.1'
+VERSION_CODE = 703
 
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def module(name, path):

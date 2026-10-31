@@ -89,7 +89,7 @@ final class AudioPlayer {
                 if(epoch!=previousEpoch){pump.discard();previousEpoch=epoch;}
                 if(outputStatus!=previousStatus){previousStatus=outputStatus;if(outputStatus==2){pump.discard();status.changed("Sound: unsupported guest IIS format");}else if(outputStatus==3)throw new IOException("Native sound output unavailable");}
                 if(n>0){pump.accept(packet,pcm);statusIfRateChanged(packet.rate);}
-                else await(outputStatus==0?20:4,revision);
+                else {sink.idle(System.nanoTime());await(outputStatus==0?20:4,revision);}
             }
         }catch(Exception error){status.changed("Sound disabled: "+error.getMessage());}
         finally{control.allowed(session,false);pump.close();abandonFocus();}
@@ -98,6 +98,8 @@ final class AudioPlayer {
     private void statusIfRateChanged(int rate){if(lastRate!=rate){lastRate=rate;status.changed("Sound playing ("+rate+" Hz)");}}
     private final class TrackSink implements AudioPump.Sink {
         private AudioTrack track;private int configuredRate;
+        private short[] silence;
+        private long submitted,lastWrite,lastHead,headWrap,lastProgress;
         public synchronized boolean configure(int rate,int bufferMs){
             if(track!=null&&configuredRate==rate)return true;
             close();
@@ -109,16 +111,40 @@ final class AudioPlayer {
                     new AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setSampleRate(rate).build(),
                     bytes,AudioTrack.MODE_STREAM,AudioManager.AUDIO_SESSION_ID_GENERATE);
                 if(track.getState()!=AudioTrack.STATE_INITIALIZED){close();return false;}
+                silence=new short[bytes/2];
                 configuredRate=rate;return true;
             }catch(RuntimeException unavailable){close();return false;}
         }
         public synchronized int write(short[] pcm,int offset,int count){
             if(!foreground||!enabled||!focused||closing)return 0;
             if(track==null)return AudioTrack.ERROR_INVALID_OPERATION;
-            try{if(track.getPlayState()!=AudioTrack.PLAYSTATE_PLAYING)track.play();return track.write(pcm,offset,count,AudioTrack.WRITE_NON_BLOCKING);}
+            try{if(track.getPlayState()!=AudioTrack.PLAYSTATE_PLAYING)track.play();
+                int wrote=track.write(pcm,offset,count,AudioTrack.WRITE_NON_BLOCKING);
+                if(wrote>0){submitted+=wrote/2;lastWrite=System.nanoTime();}
+                return wrote;}
             catch(RuntimeException error){return AudioTrack.ERROR_INVALID_OPERATION;}
         }
-        public synchronized void flush(){if(track!=null)try{track.pause();track.flush();}catch(RuntimeException ignored){}}
-        public synchronized void close(){if(track!=null){try{track.pause();track.flush();}catch(RuntimeException ignored){}track.release();track=null;}configuredRate=0;}
+        synchronized void idle(long now){
+            if(track==null||!foreground||!enabled||!focused||closing||lastWrite==0)return;
+            try{
+                long raw=Integer.toUnsignedLong(track.getPlaybackHeadPosition());
+                if(raw<(lastHead&0xffffffffL))headWrap+=1L<<32;
+                long head=headWrap+raw;
+                if(head!=lastHead){lastHead=head;lastProgress=now;}
+                if(lastProgress==0)lastProgress=now;
+                // API24-30 (and devices with a larger minimum threshold) need a
+                // full buffer after starvation. Only pad a stalled, idle burst;
+                // regular game packets continue unchanged, with no silence loop.
+                if(now-lastWrite<20000000L||now-lastProgress<20000000L||head>=submitted)return;
+                long missing=(long)track.getBufferSizeInFrames()-(submitted-head);
+                if(missing<=0)return;
+                int count=(int)Math.min(missing*2,silence.length);
+                int wrote=track.write(silence,0,count,AudioTrack.WRITE_NON_BLOCKING);
+                if(wrote>0)submitted+=wrote/2;
+            }catch(RuntimeException ignored){/* normal write handles track failure */}
+        }
+        private void resetProgress(){submitted=lastWrite=lastHead=headWrap=lastProgress=0;}
+        public synchronized void flush(){if(track!=null)try{track.pause();track.flush();}catch(RuntimeException ignored){}resetProgress();}
+        public synchronized void close(){if(track!=null){try{track.pause();track.flush();}catch(RuntimeException ignored){}track.release();track=null;}configuredRate=0;silence=null;resetProgress();}
     }
 }

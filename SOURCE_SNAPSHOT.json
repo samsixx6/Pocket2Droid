@@ -1,0 +1,20 @@
+{
+  "version": "1.0.3.1",
+  "through_test": "1.0.3-test19",
+  "android_version_code": 703,
+  "motion_support": false,
+  "base_commit": "e85838e7b8d28981cdb9eb53815258c61accf1db",
+  "native_engine_baseline": "1.0.3-test17",
+  "features": [
+    "GLES1/GLES2 GPU bridge and software GLES1 fallback",
+    "shared-memory graphics transport",
+    "Direct3D Mobile adapter source",
+    "test16 compatibility and test17 GPU target/DXT fixes",
+    "storage-preserving Update/Change ROM",
+    "automatic GLES/GPU-preferred setup, without manual settings",
+    "content-based GLES ROM library badge"
+  ],
+  "not_an_exact_test19_apk_source": "Motion/tilt intentionally excluded; release APK uses the exact test17 native baseline and current ROM-update frontend.",
+  "source_commit_before_release_metadata": "0cc243a449fb2c2129b9b910afd4c934856482be",
+  "apk_sha256": "75d5d4fb335decdec78ec5f8e99f55c7eab13239ede37036b76135973e28600a"
+}

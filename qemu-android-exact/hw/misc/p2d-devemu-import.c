@@ -9,6 +9,7 @@
 #include "system/cpus.h"
 #include "system/memory.h"
 #include "hw/arm/p2d-import.h"
+#include "hw/arm/p2d-ce-seek-fix.h"
 #include <sys/statvfs.h>
 #include <sys/syscall.h>
 #include <linux/fs.h>
@@ -18,24 +19,39 @@
 #define CAB_NAME "RagingThunder.cab"
 static bool folder_move_state_load(P2DImport *s, const char *state,
                                    const char *shared, Error **errp);
+static bool p2d_gles_load(P2DImport *s, const char *assets,
+                          const char *renderer, Error **errp);
+static void p2d_gles_reset(P2DGLESFiles *s);
+static void p2d_gles_cleanup(P2DGLESFiles *s);
+static void p2d_shm_init(P2DImport *s);
+static void p2d_shm_reset(P2DGLESFiles *s);
+static void p2d_shm_cleanup(P2DGLESFiles *s);
 
 bool p2d_import_load(P2DImport *s, CPUState *cpu, const char *path,
                      const char *shared_folder, const char *move_state,
-                     const char *network_setup, Error **errp)
+                     const char *network_setup, const char *gles_assets,
+                     const char *gles_renderer, Error **errp)
 {
     struct stat st;
     int fd;
     size_t done = 0;
     s->cpu = cpu;
+    s->ce_seek_checked = false;
     s->root_fd = -1;
     s->move_state_fd = s->move_lock_fd = -1;
     s->move_blocked = false;
+    s->gles.initialized = true;
+    s->gles.fd = -1;
     for (unsigned i = 0; i < ARRAY_SIZE(s->files); i++) {
         s->files[i].fd = -1;
     }
     s->initialized = true;
     if (path && shared_folder) {
         error_setg(errp, "import-file and shared-folder are mutually exclusive");
+        return false;
+    }
+    if ((gles_assets || gles_renderer) && !shared_folder) {
+        error_setg(errp, "GLES transport requires shared-folder");
         return false;
     }
     if (shared_folder) {
@@ -45,6 +61,10 @@ bool p2d_import_load(P2DImport *s, CPUState *cpu, const char *path,
             error_setg_errno(errp, errno, "Cannot open shared-folder directory");
             return false;
         }
+        if (!p2d_gles_load(s, gles_assets, gles_renderer, errp)) {
+            return false;
+        }
+        p2d_shm_init(s);
         if (network_setup) {
             Error *local = NULL;
             if (!p2d_net_setup_files_load(&s->setup, network_setup, s->root_fd, &local)) {
@@ -93,6 +113,7 @@ bool p2d_import_load(P2DImport *s, CPUState *cpu, const char *path,
 
 void p2d_import_reset(P2DImport *s)
 {
+    s->ce_seek_checked = false;
     if (s->initialized) {
         for (unsigned i = 0; i < ARRAY_SIZE(s->files); i++) {
             if (s->files[i].fd >= 0) {
@@ -101,11 +122,14 @@ void p2d_import_reset(P2DImport *s)
             s->files[i].fd = -1;
             s->files[i].mode = 0;
             s->files[i].position = 0;
+            s->files[i].gles_id = 0;
             g_clear_pointer(&s->files[i].name, g_free);
             if (s->find[i].directory) {
                 closedir(s->find[i].directory);
             }
             s->find[i].directory = NULL;
+            s->find[i].gles_dir = s->find[i].gles_root = false;
+            s->find[i].gles_next = 0;
             s->find[i].setup_dir = s->find[i].setup_pending = s->find[i].setup_offered = false;
             g_clear_pointer(&s->find[i].pattern, g_free);
         }
@@ -115,6 +139,8 @@ void p2d_import_reset(P2DImport *s)
     memset(s->modes, 0, sizeof(s->modes));
     memset(s->positions, 0, sizeof(s->positions));
     s->trace_count = 0;
+    p2d_gles_reset(&s->gles);
+    p2d_shm_reset(&s->gles);
 }
 
 bool p2d_import_enabled(P2DImport *s)
@@ -126,6 +152,8 @@ void p2d_import_cleanup(P2DImport *s)
 {
     p2d_import_reset(s);
     p2d_net_setup_files_cleanup(&s->setup);
+    p2d_shm_cleanup(&s->gles);
+    p2d_gles_cleanup(&s->gles);
     if (s->initialized && s->root_fd >= 0) {
         close(s->root_fd);
     }
@@ -195,6 +223,97 @@ static bool guest_copy(P2DImport *s, uint32_t address, void *buffer,
         offset += span->size;
     }
     return true;
+}
+
+/* Only a known, uniquely identified driver routine in the calling module is
+ * eligible. In particular, never patch persistent RAM-FMD, retained RAM, ROM,
+ * MMIO, a game executable, or an arbitrary absolute file offset.
+ */
+static bool ce_seek_volatile_range(P2DImport *s, uint32_t va, uint32_t size,
+                                    uint64_t *pa)
+{
+    TranslateForDebugResult translation;
+    if ((va & 3) || size > 1024 || (va & 1023) + size > 1024 ||
+        !cpu_translate_for_debug(s->cpu, va, &translation)) {
+        return false;
+    }
+    *pa = translation.physaddr;
+    if (*pa < 0x30000000 || *pa + size > 0x38000000 ||
+        (*pa >= 0x34000000 && *pa < 0x36000000)) {
+        return false;
+    }
+    MemoryRegionSection section = memory_region_find(get_system_memory(), *pa, size);
+    bool allowed = section.mr && memory_region_is_ram(section.mr) &&
+                   !memory_region_is_rom(section.mr) &&
+                   int128_get64(section.size) >= size &&
+                   memory_region_get_fd(section.mr) < 0;
+    if (section.mr) {
+        memory_region_unref(section.mr);
+    }
+    return allowed;
+}
+
+static void ce_seek_compatibility(P2DImport *s, uint32_t command)
+{
+    enum { WINDOW = 65536, PAGE = 1024 };
+    /* The platform's zero-command handshake runs before VCEFSD is loaded.
+     * Nonzero protocol commands are issued by the resident driver itself.
+     */
+    if (s->ce_seek_checked || !command) {
+        return;
+    }
+    s->ce_seek_checked = true;
+    uint64_t pc = CPU_GET_CLASS(s->cpu)->get_pc(s->cpu);
+    /* This ARM target uses CF_PCREL and keeps its PC current at MMIO helpers.
+     * Reading it does not restore CPU state or replay the open operation.
+     */
+    if (pc > UINT32_MAX) {
+        return;
+    }
+    uint32_t base = (uint32_t)pc & ~(WINDOW - 1u);
+    g_autofree uint8_t *code = g_malloc0(WINDOW);
+    bool valid[WINDOW / PAGE] = { false };
+    for (unsigned off = 0; off < WINDOW; off += PAGE) {
+        uint64_t pa;
+        if (ce_seek_volatile_range(s, base + off, PAGE, &pa) &&
+            address_space_rw(&address_space_memory, pa, MEMTXATTRS_UNSPECIFIED,
+                             code + off, PAGE, false) == MEMTX_OK) {
+            valid[off / PAGE] = true;
+        }
+    }
+    unsigned matches = 0, found = 0;
+    bool fixed = false;
+    for (unsigned off = 0; off <= WINDOW - P2D_CE_SEEK_BYTES; off += 4) {
+        bool candidate_fixed = false;
+        if (valid[off / PAGE] &&
+            valid[(off + P2D_CE_SEEK_BYTES - 1) / PAGE] &&
+            p2d_ce_seek_signature(code + off, WINDOW - off, &candidate_fixed)) {
+            ++matches;
+            found = off;
+            fixed = candidate_fixed;
+        }
+    }
+    if (matches != 1 || fixed ||
+        (pc - base >= found && pc - base < found + P2D_CE_SEEK_BYTES)) {
+        return;
+    }
+    uint32_t address = base + found + P2D_CE_SEEK_CHANGE;
+    uint64_t pa;
+    uint8_t before[4], after[4];
+    if (!ce_seek_volatile_range(s, address, sizeof(before), &pa) ||
+        address_space_rw(&address_space_memory, pa, MEMTXATTRS_UNSPECIFIED,
+                         before, sizeof(before), false) != MEMTX_OK ||
+        ldl_le_p(before) != P2D_CE_SEEK_SUB) {
+        return;
+    }
+    stl_le_p(after, P2D_CE_SEEK_ADD);
+    /* Normal RAM write: dirties RAM and invalidates previously translated TBs.
+     * The matched routine has no MMIO, and is not the current caller.
+     */
+    if (address_space_rw(&address_space_memory, pa, MEMTXATTRS_UNSPECIFIED,
+                         after, sizeof(after), true) == MEMTX_OK) {
+        info_report("p2d corrected known VCEFSD FILE_END seek at 0x%08x", address);
+    }
 }
 
 static bool get_name(const uint8_t *pb, char *name)
@@ -667,9 +786,14 @@ static void folder_search_close(P2DFolderSearch *find)
         closedir(find->directory);
     }
     find->directory = NULL;
+    find->gles_dir = find->gles_root = false;
+    find->gles_next = 0;
     find->setup_dir = find->setup_pending = find->setup_offered = false;
     g_clear_pointer(&find->pattern, g_free);
 }
+
+#include "p2d-gles-transport.inc"
+#include "p2d-gles-shm.inc"
 
 static int folder_next(P2DImport *s, P2DFolderSearch *find, uint8_t *pb, bool write_name)
 {
@@ -884,6 +1008,9 @@ static uint32_t folder_execute(P2DImport *s, uint32_t address, uint32_t cmd)
         if (!name) {
             return 123;
         }
+        if (!p2d_gles_path_safe(&s->gles, name)) {
+            return 123;
+        }
         parts = folder_parts(name, cmd == 0x11 && (int16_t)lduw_le_p(pb + 8) == 0);
         if (!parts) {
             return 123;
@@ -894,9 +1021,17 @@ static uint32_t folder_execute(P2DImport *s, uint32_t address, uint32_t cmd)
         if (!name2 || !(parts2 = folder_parts(name2, false))) {
             return 123;
         }
+        if (!p2d_gles_path_safe(&s->gles, name2)) {
+            return 123;
+        }
     }
     if (cmd == 6 && (mode & 15) > 2) {
         return 123;
+    }
+    uint32_t gles_result;
+    if (folder_gles_execute(s, address, cmd, pb, io, parts, parts2,
+                            &gles_result)) {
+        return gles_result;
     }
     bool setup_path = parts && parts->len &&
                       p2d_net_setup_files_handles(&s->setup, parts->pdata[0]);
@@ -922,6 +1057,7 @@ static uint32_t folder_execute(P2DImport *s, uint32_t address, uint32_t cmd)
         s->files[h].mode = 0;
         s->files[h].position = 0;
         s->files[h].name = g_strdup("autorun.exe");
+        s->files[h].gles_id = 0;
         stw_le_p(pb + 10, h);
         return guest_copy(s, address, pb, sizeof(pb), true) ? 0 : 30;
     }
@@ -966,6 +1102,7 @@ static uint32_t folder_execute(P2DImport *s, uint32_t address, uint32_t cmd)
         s->files[h].mode = mode;
         s->files[h].position = 0;
         s->files[h].name = g_strdup(leaf);
+        s->files[h].gles_id = 0;
         stw_le_p(pb + 10, h);
         break;
     case 7:
@@ -1104,6 +1241,7 @@ static uint32_t folder_execute(P2DImport *s, uint32_t address, uint32_t cmd)
 uint32_t p2d_import_execute(P2DImport *s, uint32_t address, uint32_t cmd)
 {
     if (s->initialized && s->root_fd >= 0) {
+        ce_seek_compatibility(s, cmd);
         return folder_execute(s, address, cmd);
     }
     return import_execute(s, address, cmd);

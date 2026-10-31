@@ -76,6 +76,9 @@ final class StoragePublish {
         try { if(records(privateDirectory).length==0 && pending.exists()) pending.delete(); }
         catch(IOException unavailable) { /* Preserve pending input if recovery cannot be checked. */ }
     }
+    static void copyNewFile(File from,File to)throws IOException {
+        if(!copyNoReplace(from.getAbsolutePath(),to.getAbsolutePath()))throw new IOException("Existing update destination preserved: "+to.getName());
+    }
     static boolean syncDirectory(File directory) throws IOException {
         return syncDirectoryPath(directory.getAbsolutePath());
     }

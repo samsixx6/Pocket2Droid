@@ -65,3 +65,11 @@ Thumbs.db
 desktop.ini
 /.codex/
 /.codex-remote-attachments/
+
+# Current source-only graphics/guest build outputs
+/prototypes/**/build/
+/prototypes/**/target/
+/prototypes/**/artifacts/
+/prototypes/**/cpu-build/
+/prototypes/**/evidence/
+/prototypes/**/__pycache__/

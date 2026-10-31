@@ -1,5 +1,24 @@
 # Changes
 
+## 1.0.3.1 (703) — 2026-11-01
+
+- Remove GLES support and renderer options. Graphics setup is automatic and GPU preferred; supported GLES1 startup failures retain the existing CPU fallback.
+- Migrate valid legacy Off/CPU preferences to automatic mode without changing storage or other ROM settings.
+- Add the approved cyan GLES badge below the filename for raw bridge ROMs with valid built-in ARM CE GLES DLL files. Detection reads bounded ROM metadata instead of guessing from the filename.
+- Preserve the pre-motion native/graphics baseline; gyro remains excluded.
+
+
+## 1.0.3 development source — 2026-11-01
+
+- Include GLES1/GLES2 GPU rendering, startup GLES1 CPU fallback, shared-memory transport and Direct3D Mobile adapter source.
+- Include newer compatibility fixes, PVRTC/DXT decoding and bounded GPU render targets.
+- Add Update/Change ROM above Delete ROM: preserve storage, settings, card association and library position; recover interrupted updates before launch and refuse unsafe retained-RAM replacements.
+- Preserve graphics setup identity across filename changes and fence stale mutations.
+- Exclude motion/tilt, sensor DLLs, calibration and sensitivity controls.
+
+This source-only snapshot combines the accepted non-motion native/graphics path through test17 with the test19 ROM-update frontend. It does not match the motion-enabled test19 APK byte-for-byte or guarantee universal speed gains.
+
+
 ## 1.0.2 (682)
 
 Changes since v1.0.1:

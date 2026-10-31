@@ -16,5 +16,7 @@ typedef struct P2DFrame {
 bool p2d_frame_open(P2DFrame *frame, const char *path);
 bool p2d_frame_publish(P2DFrame *frame, const uint32_t *pixels,
                        unsigned width, unsigned height, size_t stride);
+/* -1: failed/busy, 0: unchanged, 1: published. Existing bool ABI retained. */
+int p2d_frame_publish_status(P2DFrame *, const uint32_t *, unsigned, unsigned, size_t);
 void p2d_frame_close(P2DFrame *frame);
 #endif

@@ -1,0 +1,37 @@
+{
+  "executable_sha256": "1b96c3d79a4c34e1072e52764b9417c5fdad94714f92c9834579437660772d5b",
+  "machine": "ARMv4",
+  "subsystem": 9,
+  "sources": {
+    "/mnt/d/CHATGPT PROJECTS/POCKET2DROID 2.0/EXPERIMENTS/qemu-devemu/guest/network-setup/net_setup.c": "c3c79935c2640acff44cecbbbcc31ec2cd8866a6224924467e2a2e8748cd7dac",
+    "/mnt/d/CHATGPT PROJECTS/POCKET2DROID 2.0/EXPERIMENTS/qemu-devemu/guest/network-setup/net_setup_policy.c": "b7f43ddfda8e89a8cc38b1bd4029c49537c6306e6bbc27bad7dd9896609b1113",
+    "/mnt/d/CHATGPT PROJECTS/POCKET2DROID 2.0/EXPERIMENTS/qemu-devemu/guest/network-setup/net_setup.h": "dc8673c59ec277aa16390a74c1490f6bfc83ad8460a3a561940984a78d66b05d",
+    "/mnt/d/CHATGPT PROJECTS/POCKET2DROID 2.0/EXPERIMENTS/qemu-devemu/guest/network-setup/stock_wm6.h": "78173efbe1637284c6d04fbc6fca51fae92ea4814ddeb412a510ece68bbdeec9",
+    "/mnt/d/CHATGPT PROJECTS/POCKET2DROID 2.0/EXPERIMENTS/qemu-devemu/guest/network-setup/stock_wm65.h": "ee05d70d38eb9bde0ca2358da2adc9bad4d8f326a2992cd04bb3cb8f6e4389cb"
+  },
+  "builder_sha256": "3f5ef424a196e050d31ecfe7036a6488b6078b063f074f93754d783b91b38be2",
+  "tools": {
+    "clang-17": "b1b5e4fd51d03f221fca69870d02759403f95becaf13765447e5a0ad69c9f9ee",
+    "ld.lld-17": "4379d66509f61190ebeb1661666609464cb51f995e4ae8d0423b1f547ae39ed4",
+    "lld-link-17": "4379d66509f61190ebeb1661666609464cb51f995e4ae8d0423b1f547ae39ed4"
+  },
+  "imports": {
+    "coredll.dll": {
+      "CloseHandle": 553,
+      "CreateFileW": 168,
+      "CreateProcessW": 493,
+      "ExitThread": 6,
+      "GetProcAddressW": 530,
+      "LoadLibraryW": 528,
+      "ReadFile": 170,
+      "RegCloseKey": 455,
+      "RegCreateKeyExW": 456,
+      "RegDeleteValueW": 458,
+      "RegOpenKeyExW": 461,
+      "RegQueryValueExW": 463,
+      "RegSetValueExW": 464,
+      "Sleep": 496,
+      "WriteFile": 171
+    }
+  }
+}

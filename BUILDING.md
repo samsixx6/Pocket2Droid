@@ -1,4 +1,55 @@
-# Building Pocket2Droid
+# Building the 1.0.3.1 release source
+
+This is 1.0.3.1 release source through test19 with motion/tilt excluded.
+The native engine/graphics baseline is test17, followed by the ROM-update Java
+changes. The signed release APK is supplied separately from this source archive.
+
+Graphics policy correction: GLES is automatically enabled with GPU preferred;
+manual GLES options are removed. The GLES badge recognizes the uncompressed
+ARM CE DLL file layout in our raw Device Emulator ROMs, not arbitrary compressed
+or physical-device ROM formats. The current focused runner is
+python3 android/tests/run_gles_automatic_tests.py.
+
+Current additions:
+- android/src: current frontend without motion settings or capture.
+- android/assets: exact authored non-motion setup assets from test17.
+- qemu-android-exact: GLES/service/import and dirty-display source overlays.
+- prototypes/gles-android: GLES1 guest DLL/setup source, selector, GPU renderer
+  and Rust software adapter. prototypes/gles-support/bridge-lab/host retains its
+  complete local Rust dependency/vendor source and notices.
+- prototypes/gles2: shared-memory GLES2 native/guest source with test16 fixes.
+- prototypes/d3dm: Direct3D Mobile adapter source.
+
+Run python3 tools/build_graphics.py --target host for native C graphics libraries.
+Use --target android with P2D_NDK_BIN pointing at the NDK LLVM bin directory.
+The Rust software adapter builds with Cargo in prototypes/gles-android/native;
+its path dependency and lockfiles are included. Its Cargo output libp2d_gles.so
+must be deployed as libp2d_gles_cpu.so beside the current selector, with a matching
+SONAME. For Android set the NDK linker and target Rust flags including
+-C link-arg=-Wl,-z,max-page-size=16384 and
+-C link-arg=-Wl,-soname,libp2d_gles_cpu.so. Guest DLL builders require LLVM17
+ARM tools and the supplied network helper PE builder; no Microsoft SDK binaries,
+games or ROMs are required for GLES compilation. The East Story shader mapping
+contains SHA-256 fingerprints and authored replacement GLSL only; original game
+shader binaries and source text are excluded. Direct3D Mobile adapter builds
+separately require matching SDK120 headers supplied by the contributor through
+P2D_D3DM_SDK; those Microsoft headers are intentionally not redistributed.
+The adapter imports the private p2dGLES2.dll entry point; deployment remains
+explicit rather than automatic graphics setup.
+
+The new transaction runner is python3 android/tests/run_rom_update_tests.py
+--repository, with --fallback for unsupported-rename publication. Existing
+library, geometry and network runners remain available. They use disposable files.
+
+Older scripts/records below are retained provenance with maintainer cache and
+signing assumptions, not a complete fresh-checkout APK build. Old binary hashes
+describe historical releases. Use a separate contributor app ID/key for device
+builds. This release variant is not identical to the motion-enabled signed test19 APK.
+No clean-machine full-APK build is claimed.
+
+---
+
+# Historical build pipeline
 
 The v1.0.2 APK was built with an Android Java frontend and an ARM64 QEMU engine compiled for Android's Bionic runtime. This snapshot contains the corresponding source, build recipes and recorded dependency identities.
 

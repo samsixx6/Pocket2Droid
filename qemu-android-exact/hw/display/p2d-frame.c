@@ -35,14 +35,14 @@ bool p2d_frame_open(P2DFrame *f, const char *path)
     return true;
 }
 
-bool p2d_frame_publish(P2DFrame *f, const uint32_t *pixels,
+int p2d_frame_publish_status(P2DFrame *f, const uint32_t *pixels,
                        unsigned w, unsigned h, size_t stride)
 {
     struct flock lock = { .l_type = F_WRLCK, .l_whence = SEEK_SET };
     if (!f->map || !pixels || !w || !h || (uint64_t)w * 4 > SIZE_MAX ||
         h > (SIZE_MAX - 64) / ((size_t)w * 4) || stride < (size_t)w * 4 ||
         (h > 1 && stride > (SIZE_MAX - (size_t)w * 4) / (h - 1)) ||
-        fcntl(f->fd, F_SETLK, &lock) < 0) { return false; }
+        fcntl(f->fd, F_SETLK, &lock) < 0) { return -1; }
     size_t bytes = 64 + (size_t)w * h * 4;
     if (bytes > f->map_size) {
         if (bytes > INT64_MAX || ftruncate(f->fd, bytes) < 0) { goto unlock; }
@@ -77,12 +77,18 @@ bool p2d_frame_publish(P2DFrame *f, const uint32_t *pixels,
         f->width = w; f->height = h;
     }
     lock.l_type = F_UNLCK;
-    if (fcntl(f->fd, F_SETLK, &lock) < 0) { return false; }
+    if (fcntl(f->fd, F_SETLK, &lock) < 0) { return -1; }
     return changed;
 unlock:
     lock.l_type = F_UNLCK;
     fcntl(f->fd, F_SETLK, &lock);
-    return false;
+    return -1;
+}
+
+bool p2d_frame_publish(P2DFrame *f, const uint32_t *pixels,
+                       unsigned w, unsigned h, size_t stride)
+{
+    return p2d_frame_publish_status(f, pixels, w, h, stride) > 0;
 }
 
 void p2d_frame_close(P2DFrame *f)

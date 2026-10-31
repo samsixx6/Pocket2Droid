@@ -53,6 +53,7 @@ struct P2DSoc {
     char *shared_folder;
     char *shared_move_state;
     char *network_setup;
+    char *gles_assets, *gles_renderer;
     P2DImport import;
     uint32_t spi1[6];
     uint8_t keys[32], key_head, key_count;
@@ -702,7 +703,7 @@ static void soc_realize(DeviceState *dev, Error **errp)
 {
     P2DSoc *s = P2D_SOC(dev);
     if (!p2d_import_load(&s->import, CPU(s->cpu), s->import_file,
-                         s->shared_folder, s->shared_move_state, s->network_setup, errp)) {
+                         s->shared_folder, s->shared_move_state, s->network_setup, s->gles_assets, s->gles_renderer, errp)) {
         return;
     }
     s->input = qemu_input_handler_register(dev, &touch_handler);
@@ -715,6 +716,8 @@ static const Property soc_properties[] = {
     DEFINE_PROP_STRING("shared-folder", P2DSoc, shared_folder),
     DEFINE_PROP_STRING("shared-move-state", P2DSoc, shared_move_state),
     DEFINE_PROP_STRING("network-setup", P2DSoc, network_setup),
+    DEFINE_PROP_STRING("gles-assets", P2DSoc, gles_assets),
+    DEFINE_PROP_STRING("gles-renderer", P2DSoc, gles_renderer),
 };
 
 static void soc_finalize(Object *obj)

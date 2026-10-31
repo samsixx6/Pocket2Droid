@@ -1,5 +1,9 @@
 # Pocket2Droid
 
+## Current release: 1.0.3.1
+
+The source includes the GLES 1/GLES 2 GPU bridge, shared-memory graphics transport, newer compatibility fixes, and storage-preserving **Update/Change ROM** through test19. Gyro/tilt support is intentionally excluded. GLES setup is automatic and GPU preferred; the library shows a GLES badge for recognized built-in bridge ROMs. This source archive accompanies the signed 1.0.3.1 release APK. See BUILDING.md and CHANGELOG.md.
+
 A Windows Mobile emulator for Android that runs the complete operating system, including compatible applications and games.
 
 Pocket2Droid is under development; compatibility and performance vary by Android device, ROM and game.

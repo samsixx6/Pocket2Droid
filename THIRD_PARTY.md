@@ -53,3 +53,7 @@ executables and Windows Mobile ROM images are not bundled.
 
 The repository's main license does not replace third-party
 copyright notices or component-specific licenses.
+
+## Graphics bridge
+
+The software GLES renderer includes PocketHLE pocket-gles under its supplied MIT license. Complete local source and LICENSE-MIT are retained under prototypes/gles-support/bridge-lab/host/vendor. Additional retained notices are in prototypes/gles-android/native/THIRD-PARTY-NOTICES.txt. The PVRTC decoder adaptation retains its MIT license and provenance in prototypes/gles-android/native/gpu. GPU/guest adapter code and ordinal data are included as source. No Windows Mobile ROM, game, vendor SDK DLL, signing key, or captured guest memory is included.

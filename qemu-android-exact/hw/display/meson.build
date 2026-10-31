@@ -146,4 +146,4 @@ endif
 system_ss.add(when: 'CONFIG_OMAP', if_true: files('omap_lcdc.c'))
 
 modules += { 'hw-display': hw_display_modules }
-system_ss.add(when: 'CONFIG_P2D_DEVEMU', if_true: files('p2d-devemu-lcd.c', 'p2d-frame.c'))
+system_ss.add(when: 'CONFIG_P2D_DEVEMU', if_true: files('p2d-devemu-lcd.c', 'framebuffer.c', 'p2d-frame.c'))

@@ -20,7 +20,7 @@ final class RomRepository {
     }
     private void init()throws IOException {
         ProfileFiles.dir(root);ProfileFiles.dir(runtime);ProfileFiles.dir(roms);ProfileFiles.dir(data);
-        StoragePublish.recover(runtime,root);ProfileFiles.recover(root,runtime);recoverDelete();
+        StoragePublish.recover(runtime,root);ProfileFiles.recover(root,runtime);RomUpdate.recover(root,runtime);recoverDelete();
     }
     static String label(String name){String s=name.replaceFirst("(?i)\\.bin$","");return s.trim().isEmpty()?"ROM":s.substring(0,Math.min(s.length(),180));}
     static String binName(String name)throws IOException {String safe=ProfileFiles.name(name);if(!safe.toLowerCase(Locale.ROOT).endsWith(".bin"))throw new IOException("Select a .bin ROM file. CAB and other file types cannot be imported here.");return safe;}
@@ -40,7 +40,8 @@ final class RomRepository {
             String icon=o.getString("iconId"),state=o.getString("saveState");if(!Arrays.asList(ICONS).contains(icon)||!Arrays.asList("NEW","READY","PREPARING_NEW","PREPARING_COPY").contains(state))throw new IOException("Invalid profile state");
             RomSettings settings=RomSettings.parse(o);
             if(settings.resolution==RomSettings.GuestResolution.ROM_DEFAULT)settings=settings.withResolution(settings.startupResolution(filename));
-            return new RomProfile(filename,icon,rom,save,settings,state,null);
+            if(o.has("settingsKey")&&!(o.get("settingsKey") instanceof String))throw new IOException("Invalid installation settings key");
+            String key=o.optString("settingsKey",filename);ProfileFiles.name(key);return new RomProfile(filename,icon,rom,save,settings,state,null,key);
         }catch(JSONException e){throw new IOException("Invalid ROM profile; existing save preserved",e);}
     }
     private RomProfile add(String name,String display)throws IOException {
@@ -58,7 +59,7 @@ final class RomRepository {
         if(state.equals("READY"))settings=settings.withNetworkSetupEligibility(false);
         settings=settings.withResolution(settings.startupResolution(name));
         try{JSONObject library=new JSONObject().put("schema",1).put("lastAssignedIconId",icon);
-            ProfileFiles.commit(root,runtime,ProfileFiles.update("data/"+name+"/profile.json",record(settings,icon,state)),ProfileFiles.update("data/library.json",library));
+            ProfileFiles.commit(root,runtime,ProfileFiles.update("data/"+name+"/profile.json",state.equals("NEW")?record(settings,icon,state).put("settingsKey","rom-"+UUID.randomUUID().toString().replace("-","")):record(settings,icon,state)),ProfileFiles.update("data/library.json",library));
         }catch(JSONException e){throw new IOException(e);}return load(name);
     }
     private List<String> allNames()throws IOException {
@@ -93,7 +94,7 @@ final class RomRepository {
     }
     List<RomProfile> scan()throws IOException{return work(()->{
         List<String> all=orderedNames(allNames());List<RomProfile> profiles=new ArrayList<>();
-        for(String name:all){try{RomProfile p=add(name,label(name));String error=p.rom.isFile()?null:"ROM file unavailable";profiles.add(new RomProfile(name,p.iconId,p.rom,p.storage,p.settings,p.saveState,error));}
+        for(String name:all){try{RomProfile p=add(name,label(name));String error=p.rom.isFile()?null:"ROM file unavailable";profiles.add(new RomProfile(name,p.iconId,p.rom,p.storage,p.settings,p.saveState,error,p.settingsKey));}
             catch(IOException failure){RomSettings fallback=RomSettings.defaults(label(name),defaultCard);profiles.add(new RomProfile(name,ICONS[0],new File(roms,name),new File(data,name+"/ram-fmd.bin"),fallback,"INVALID",failure.getMessage()));}}
         saveOrder(all);return profiles;
     });}
@@ -131,7 +132,12 @@ final class RomRepository {
     }
     private static boolean overlap(File a,File b){String x=a.getPath(),y=b.getPath();return x.equals(y)||x.startsWith(y+File.separator)||y.startsWith(x+File.separator);}
     RomProfile verifyForLaunch(String name)throws IOException{return work(()->{RomProfile p=load(name);verifyFiles(p);validateCard(p.settings.card);return p;});}
-    RomProfile getProfile(String name)throws IOException{return work(()->load(name));}
+    RomProfile getProfile(String name)throws IOException{return work(()->load(RomUpdate.resolveUpdatedName(root,runtime,name)));}
+    RomProfile updateRom(String name,InputStream input,String sourceName,RomUpdate.Identity identity)throws IOException{return updateRom(name,null,input,sourceName,identity);}
+    private RomProfile selected(String name,String expectedKey)throws IOException{RomProfile p=load(name);if(expectedKey!=null&&!expectedKey.equals(p.settingsKey))throw new IOException("The selected ROM installation has changed; reopen its settings");return p;}
+    RomProfile updateRom(String name,String expectedKey,InputStream input,String sourceName,RomUpdate.Identity identity)throws IOException{return work(()->{
+        RomProfile p=selected(name,expectedKey);String next=binName(sourceName);RomUpdate.replace(root,runtime,p,input,next,orderedNames(allNames()),identity);return load(next);
+    });}
     // Called only by Engine while SessionGuard protects its storage ownership.
     RomProfile verifySessionProfile(String name)throws IOException{init();RomProfile p=load(name);verifyFiles(p);validateCard(p.settings.card);return p;}
     static void verifyFiles(RomProfile p)throws IOException {
@@ -160,8 +166,9 @@ final class RomRepository {
         saveRecord(p,record(preparedSettings,p.iconId,"READY"));return null;
     });}
     private static String zeroDigest()throws IOException{try{MessageDigest d=MessageDigest.getInstance("SHA-256");byte[] b=new byte[1024*1024];for(int i=0;i<32;i++)d.update(b);return hex(d.digest());}catch(NoSuchAlgorithmException e){throw new IOException(e);}}
-    private void saveRecord(RomProfile p,JSONObject o)throws IOException{ProfileFiles.commit(root,runtime,ProfileFiles.update("data/"+p.filename+"/profile.json",o));}
-    void saveSettings(String name,RomSettings settings)throws IOException{work(()->{RomProfile p=load(name);validateCard(settings.card);if(!settings.resolution.supported())throw new IOException("Choose ROM default; guest overrides are not yet verified");saveRecord(p,record(settings,p.iconId,p.saveState));return null;});}
+    private void saveRecord(RomProfile p,JSONObject o)throws IOException{try{o.put("settingsKey",p.settingsKey);}catch(JSONException e){throw new IOException(e);}ProfileFiles.commit(root,runtime,ProfileFiles.update("data/"+p.filename+"/profile.json",o));}
+    void saveSettings(String name,RomSettings settings)throws IOException{saveSettings(name,null,settings);}
+    void saveSettings(String name,String expectedKey,RomSettings settings)throws IOException{work(()->{RomProfile p=selected(name,expectedKey);validateCard(settings.card);if(!settings.resolution.supported())throw new IOException("Choose ROM default; guest overrides are not yet verified");saveRecord(p,record(settings,p.iconId,p.saveState));return null;});}
     private void copy(InputStream input,File target,long limit,boolean exact,String expected)throws IOException {
         copy(input,target,limit,exact,expected,false);
     }
@@ -173,7 +180,8 @@ final class RomRepository {
         }catch(NoSuchAlgorithmException e){throw new IOException(e);}finally{StoragePublish.cleanupPending(pending,runtime);}
     }
     private static String hex(byte[] b){StringBuilder s=new StringBuilder();for(byte x:b)s.append(String.format(Locale.ROOT,"%02x",x&255));return s.toString();}
-    void deleteRom(String name)throws IOException{work(()->{ProfileFiles.name(name);File rom=new File(roms,name);ProfileFiles.plain(rom);folder(name);checkDeleteCards();File j=new File(runtime,"library-delete.pending.json");try{ProfileFiles.publishJournal(j,new JSONObject().put("schema",1).put("filename",name).toString(),runtime);}catch(JSONException e){throw new IOException(e);}recoverDelete();return null;});}
+    void deleteRom(String name)throws IOException{deleteRom(name,null);}
+    void deleteRom(String name,String expectedKey)throws IOException{work(()->{if(expectedKey!=null)selected(name,expectedKey);ProfileFiles.name(name);File rom=new File(roms,name);ProfileFiles.plain(rom);if(!rom.exists()&&!folder(name).exists())throw new IOException("ROM installation no longer exists");folder(name);checkDeleteCards();File j=new File(runtime,"library-delete.pending.json");try{ProfileFiles.publishJournal(j,new JSONObject().put("schema",1).put("filename",name).toString(),runtime);}catch(JSONException e){throw new IOException(e);}recoverDelete();return null;});}
     private void checkDeleteCards()throws IOException {
         validateCardPath(defaultCard);File[] dirs=data.listFiles();if(dirs==null)throw new IOException("Cannot inspect card assignments");
         for(File d:dirs)if(d.isDirectory()&&new File(d,"profile.json").exists()){ProfileFiles.plain(d);RomProfile p=load(d.getName());validateCardPath(p.settings.card);}

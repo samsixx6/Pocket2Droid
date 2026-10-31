@@ -1,0 +1,26 @@
+Pocket2Droid 1.0.3.1 (code703) - corrected public release
+
+Close the ROM normally, then install this APK as an update. The official
+package and signing key are retained. Keep existing app data.
+
+GLES is automatic and GPU preferred. The old GLES support and renderer options
+are removed. Valid legacy Off/CPU selections migrate automatically; other ROM
+settings and storage are retained. GLES1 retains automatic CPU fallback when
+GPU initialization is unavailable; GLES2 still requires a working GPU backend.
+
+A cyan GLES badge appears below the filename for recognized raw ROMs with
+built-in ARM CE GLES bridge DLL files. Renaming a plain ROM to include GLES
+cannot create the badge. Detection is read-only and occurs off the UI thread.
+The badge means built-in support, not active GPU usage or universal compatibility.
+Compressed and unrelated physical-device ROM layouts are not detected.
+
+Gyro/tilt remains excluded. Update/Change ROM is retained. Existing v1.0.3
+GLES BINs and graphics DLLs remain compatible; no replacement BIN is required.
+Older instructions to select GLES On/GPU preferred no longer apply: automatic
+setup now supplies the verified assets and host graphics endpoint.
+
+The pre-motion test17 native engine, all graphics/storage libraries and assets
+are byte-identical. Signature/content identity and16KiB APK/ELF alignment are
+verified. Focused real profile, ROM-content, launch and PC Android UI checks pass.
+No new phone/gameplay/performance validation is claimed for this UI correction.
+Matching source: Pocket2Droid-v1.0.3.1.Source.zip.

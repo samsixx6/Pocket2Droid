@@ -46,6 +46,8 @@ struct P2DMachineState {
     char *import_path;
     char *shared_folder;
     char *network_setup;
+    char *gles_assets;
+    char *gles_renderer;
     char *frame_path;
     char *audio_path;
     int64_t parent_pid;
@@ -395,6 +397,15 @@ static void p2d_set_shared_folder(Object *obj, const char *value, Error **errp)
     s->shared_folder = g_strdup(value);
 }
 
+static char *p2d_get_gles_assets(Object *obj, Error **errp)
+{ return g_strdup(P2D_MACHINE(obj)->gles_assets); }
+static void p2d_set_gles_assets(Object *obj, const char *value, Error **errp)
+{ P2DMachineState *s=P2D_MACHINE(obj); g_free(s->gles_assets); s->gles_assets=g_strdup(value); }
+static char *p2d_get_gles_renderer(Object *obj, Error **errp)
+{ return g_strdup(P2D_MACHINE(obj)->gles_renderer); }
+static void p2d_set_gles_renderer(Object *obj, const char *value, Error **errp)
+{ P2DMachineState *s=P2D_MACHINE(obj); g_free(s->gles_renderer); s->gles_renderer=g_strdup(value); }
+
 static char *p2d_get_network_setup(Object *obj, Error **errp)
 {
     return g_strdup(P2D_MACHINE(obj)->network_setup);
@@ -437,6 +448,14 @@ static void p2d_init(MachineState *machine)
     cpu = object_new(machine->cpu_type);
     qdev_realize(DEVICE(cpu), NULL, &error_fatal);
     s->cpu = ARM_CPU(cpu);
+    /* Optional experimental GLES compatibility. Disabled mode retains the
+     * original ARM920T feature set, reset, MMU and device behavior. */
+    if (s->gles_renderer && *s->gles_renderer) {
+        if (!s->gles_assets || !*s->gles_assets) {
+            error_report("GLES renderer requires private GLES assets"); exit(EXIT_FAILURE);
+        }
+        s->cpu->env.features |= UINT64_C(1) << ARM_FEATURE_V5;
+    }
     soc = qdev_new(TYPE_P2D_SOC);
     object_property_set_link(OBJECT(soc), "cpu", cpu, &error_fatal);
     if (s->import_path) {
@@ -449,7 +468,9 @@ static void p2d_init(MachineState *machine)
             qdev_prop_set_string(soc, "shared-move-state", private_directory);
         }
     }
-    if (s->network_setup && s->network && s->shared_folder) {
+    if (s->gles_assets) qdev_prop_set_string(soc, "gles-assets", s->gles_assets);
+    if (s->gles_renderer) qdev_prop_set_string(soc, "gles-renderer", s->gles_renderer);
+    if (s->network_setup && (s->network || s->gles_assets) && s->shared_folder) {
         qdev_prop_set_string(soc, "network-setup", s->network_setup);
     }
     object_property_add_child(OBJECT(machine), "p2d-soc", OBJECT(soc));
@@ -683,6 +704,8 @@ static void p2d_class_init(ObjectClass *oc, const void *data)
     object_class_property_add_str(oc, "import-file", p2d_get_import, p2d_set_import);
     object_class_property_add_str(oc, "shared-folder", p2d_get_shared_folder,
                                    p2d_set_shared_folder);
+    object_class_property_add_str(oc, "gles-assets", p2d_get_gles_assets, p2d_set_gles_assets);
+    object_class_property_add_str(oc, "gles-renderer", p2d_get_gles_renderer, p2d_set_gles_renderer);
     object_class_property_add_str(oc, "network-setup", p2d_get_network_setup,
                                    p2d_set_network_setup);
     object_class_property_add_str(oc, "frame-file", p2d_get_frame, p2d_set_frame);
